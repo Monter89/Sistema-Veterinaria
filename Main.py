@@ -109,6 +109,11 @@ def registrar_duenio_gui():
     def guardar():
         nombre = nombre_var.get().strip()
         telefono = telefono_var.get().strip()
+
+        if not telefono.isdigit():
+            messagebox.showerror("Error", "El teléfono debe contener solo números (sin guiones ni espacios).")
+            return 
+
         if nombre and telefono:
             d = Duenio(nombre, telefono)
             
@@ -164,6 +169,19 @@ def registrar_mascota_gui():
         especie = especie_var.get().strip()
         peso = peso_var.get().strip()
 
+        # --- VALIDACIONES NUEVAS ---
+        if not edad.isdigit():
+            messagebox.showerror("Error", "La edad debe ser un número entero (ej: 5).")
+            return
+
+        try:
+            # Intentamos ver si el peso es un número válido (ej: 10.5)
+            float(peso)
+        except ValueError:
+            messagebox.showerror("Error", "El peso debe ser un número válido (ej: 10.5). Use punto para decimales.")
+            return
+        
+
         duenio = vet.buscar_duenio(nombre_duenio)
         if not duenio:
             messagebox.showerror("Error", f"Dueño '{nombre_duenio}' no encontrado. Regístrelo primero.")
@@ -171,20 +189,13 @@ def registrar_mascota_gui():
 
         if nombre and edad and especie and peso:
             try:
-                # La clase Mascota maneja la conversión de tipos
                 mascota = Mascota(nombre, edad, especie, peso) 
                 
-                # Se chequea si el Mascota __init__ falló silenciosamente
-                if mascota.edad == 0 or mascota.peso == 0.0:
-                    raise ValueError("Edad o peso deben ser números válidos.")
-                
                 if duenio.registrar_mascota(mascota):
-                    messagebox.showinfo("Éxito", f"{nombre} registrada a nombre de {duenio.nombre}. Edad: {mascota.edad}, Peso: {mascota.peso}kg")
+                    messagebox.showinfo("Éxito", f"{nombre} registrada a nombre de {duenio.nombre}.")
                     ventana.destroy()
                 else:
                     messagebox.showerror("Error", "No se pudo registrar la mascota")
-            except ValueError as e:
-                messagebox.showerror("Error", str(e))
             except Exception as e:
                 messagebox.showerror("Error", f"Error inesperado: {e}")
         else:
@@ -216,17 +227,25 @@ def agregar_servicio_gui():
 
     def guardar():
         nombre_servicio = servicio_var.get().strip()
+        
         precio_str = precio_var.get().strip().replace(",", ".") 
         
+        # --- VALIDACIÓN NUEVA ---
+        try:
+            float(precio_str) 
+        except ValueError:
+            messagebox.showerror("Error", "El precio debe ser un número (ej: 1500 o 1500.50).")
+            return
+        
+        
         if nombre_servicio and precio_str:
-            # La lógica del negocio intentará la conversión y devolverá True/False
             exito = vet.agregar_servicio(nombre_servicio, precio_str)
             
             if exito:
                 messagebox.showinfo("Éxito", f"Servicio {nombre_servicio} agregado.")
                 ventana.destroy()
             else:
-                messagebox.showerror("Error", "Precio inválido. Debe ser un número.")
+                messagebox.showerror("Error", "No se pudo agregar el servicio.")
         else:
             messagebox.showerror("Error", "Completar todos los campos")
 
